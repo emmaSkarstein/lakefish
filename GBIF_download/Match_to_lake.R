@@ -30,6 +30,9 @@ lakes <- readRDS(paste0(temp,"/lakes.rds"))
 unlink(temp)
 #saveRDS(object = lakes,file = "C:/Users/Lyder/GitRepos/CitizenScience/GBIF_download/lake_polygons.rds")# convinience storage of data locally
 #saveRDS(lakes,"//sambaad.stud.ntnu.no/lyderi/Documents/GitRepo/CitizenScience/lake_polygons.rds")
+if (!dir.exists(here::here("data"))){
+  dir.create(here::here("data"))
+}
 saveRDS(lakes,here::here("data","lake_polygons.rds"))
 lakes <- readRDS(here::here("data","lake_polygons.rds"))
 
