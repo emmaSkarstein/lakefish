@@ -43,10 +43,18 @@ lakes <- readRDS(here::here("data","lake_polygons.rds"))
 
 occ <- readRDS(here::here("data","GBIF_download.rds")) %>% 
   dplyr::select_if(~!all(is.na(.)))
+# Remove variables that contain na-values (is this what it does?)
 
+# Convert to sf object
 occ_sf <- st_as_sf(occ, coords = c("decimalLongitude", "decimalLatitude"), 
                    crs = 4326)
+mapview(occ_sf)
+plot(occ_sf) # ?
+
+# What does this line do? Something with the coordinates?
 occ_sf <- st_transform(occ_sf, st_crs(lakes)$epsg)
+
+# Select interesting variables?
 occ_sf <- occ_sf %>%
   dplyr::select(gbifID,occurrenceID,catalogNumber,geometry,species,taxonKey,datasetKey, locality,municipality,county,countryCode,locationID,
                 eventDate,year,month,day,samplingProtocol,eventID,fieldNumber,
@@ -85,7 +93,7 @@ end_time <- Sys.time()
 end_time - start_time
 
 occ_farfaraway <- occ_with_lakes %>% filter(dist_to_lake>0)
-#mapview(occ_farfaraway)
+mapview(occ_farfaraway)
 
 #-------------------------------------------------------------------------------------------------
 # Filter out occurrence records not matching lakes (given certain criteria)
@@ -93,7 +101,7 @@ occ_farfaraway <- occ_with_lakes %>% filter(dist_to_lake>0)
 
 occ_matched <- occ_with_lakes %>% filter(dist_to_lake<10) # example, 10 m
 
-
+mapview(occ_matched)
 
 
 # # trying st_nn function of the nngeo package - seems to move slow
