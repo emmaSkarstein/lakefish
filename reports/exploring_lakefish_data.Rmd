@@ -28,7 +28,6 @@ First, to download the data, ...
 occ <- readRDS(here::here("data","GBIF_download.rds")) %>% 
   dplyr::select_if(~!all(is.na(.)))
 
-# Convert to sf object for easier handling
 occ_sf <- occ %>% 
   st_as_sf(coords = c("decimalLongitude", "decimalLatitude"), crs = 4326) %>%    # Convert to sf object for easier handling. crs = Coordinate Reference System
   st_transform(st_crs(lakes)$epsg) %>%    # Transform coordinate system
@@ -45,4 +44,5 @@ register_google(key = "AIzaSyCOMdnUfognLZhDCS1Mhg6gatOaHXgYRKU")
 map.fennoscandia <- get_map("Sweden", zoom = 4)
 ggmap(map.fennoscandia) 
 # Can we even use ggmap to plot this?
+# I think maybe we should look for alternate mapping system.
 ```
