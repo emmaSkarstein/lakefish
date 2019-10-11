@@ -45,21 +45,25 @@ occ <- readRDS(here::here("data","GBIF_download.rds")) %>%
   dplyr::select_if(~!all(is.na(.)))
 # Remove variables that contain na-values (is this what it does?)
 
-# Convert to sf object
-occ_sf <- st_as_sf(occ, coords = c("decimalLongitude", "decimalLatitude"), 
-                   crs = 4326)
+
+occ_sf <- occ %>% 
+  # Convert to sf object for easier handling. crs = Coordinate Reference System
+  st_as_sf(coords = c("decimalLongitude", "decimalLatitude"), crs = 4326) %>%
+  
+  # Transform coordinate system, using same system as in "lakes"
+  st_transform(st_crs(lakes)$epsg) %>%
+  
+  # Select a few of the variables
+  dplyr::select(gbifID, occurrenceID, catalogNumber, geometry, species, 
+                taxonKey, datasetKey, locality, municipality, county, 
+                countryCode, locationID, eventDate, year, month, day, 
+                samplingProtocol, eventID, fieldNumber, recordedBy, 
+                dynamicProperties, collectionCode, datasetName, license, 
+                institutionCode)
+
+
+# Have a look at the data: 
 mapview(occ_sf)
-plot(occ_sf) # ?
-
-# What does this line do? Something with the coordinates?
-occ_sf <- st_transform(occ_sf, st_crs(lakes)$epsg)
-
-# Select interesting variables?
-occ_sf <- occ_sf %>%
-  dplyr::select(gbifID,occurrenceID,catalogNumber,geometry,species,taxonKey,datasetKey, locality,municipality,county,countryCode,locationID,
-                eventDate,year,month,day,samplingProtocol,eventID,fieldNumber,
-                recordedBy,dynamicProperties,collectionCode,datasetName,license,institutionCode)
-# have a look at the data: mapview(occ_sf)
 
 #-------------------------------------------------------------------------------------------------
 # find closest lake, distance to closest lake, and join
