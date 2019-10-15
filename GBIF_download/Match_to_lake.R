@@ -95,13 +95,9 @@ occ_with_lakes$dist_to_lake <- as.numeric(dist_to_lake) # add the distance calcu
 end_time <- Sys.time()
 end_time - start_time
 
-<<<<<<< HEAD
-occ_farfaraway <- occ_with_lakes %>% filter(dist_to_lake>1000)
-mapview(occ_farfaraway)
-=======
-occ_farfaraway <- occ_with_lakes %>% filter(dist_to_lake>0)
-#mapview(occ_farfaraway)
->>>>>>> faa650a839dff1fcf5101475145bd4b50549bd13
+occ_farfaraway <- occ_with_lakes %>% filter(dist_to_lake > 1000)
+# mapview(occ_farfaraway)
+
 
 #-------------------------------------------------------------------------------------------------
 # Filter out occurrence records not matching lakes (given certain criteria)
