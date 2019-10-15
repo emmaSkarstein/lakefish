@@ -69,12 +69,12 @@ mapview(occ_sf)
 # find closest lake, distance to closest lake, and join
 #-------------------------------------------------------------------------------------------------
 
-# find closest lake - and join
-occ_sf1 <- occ_sf
-start_time <- Sys.time()
-garg <- st_join(occ_sf1, lakes, join = st_nearest_feature)
-end_time <- Sys.time()
-end_time - start_time
+# # find closest lake - and join
+# occ_sf1 <- occ_sf
+# start_time <- Sys.time()
+# garg <- st_join(occ_sf1, lakes, join = st_nearest_feature)
+# end_time <- Sys.time()
+# end_time - start_time
 
 # find distance to closest lake
 
@@ -96,16 +96,31 @@ occ_with_lakes$dist_to_lake <- as.numeric(dist_to_lake) # add the distance calcu
 end_time <- Sys.time()
 end_time - start_time
 
-occ_farfaraway <- occ_with_lakes %>% filter(dist_to_lake>0)
+occ_farfaraway <- occ_with_lakes %>% filter(dist_to_lake>1000)
 mapview(occ_farfaraway)
 
 #-------------------------------------------------------------------------------------------------
 # Filter out occurrence records not matching lakes (given certain criteria)
 #-------------------------------------------------------------------------------------------------
 
-occ_matched <- occ_with_lakes %>% filter(dist_to_lake<10) # example, 10 m
+occ_matched <- occ_with_lakes %>% filter(dist_to_lake <= 10) # example, 10 m
 
 mapview(occ_matched)
+
+#-------------------------------------------------------------------------------------------------
+# Looking closer at occurrence records not matching lakes (given certain criteria)
+#-------------------------------------------------------------------------------------------------
+
+occ_far_from_lake <- occ_with_lakes %>% filter(dist_to_lake > 10)
+
+mapview(occ_far_from_lake)
+
+# Number of observations outside limit:
+cat("Number of observations further than 10m from a lake: ", nrow(occ_far_from_lake))
+
+
+# Now: do we wish to actually move the observations so they are in the lake?
+
 
 
 # # trying st_nn function of the nngeo package - seems to move slow
