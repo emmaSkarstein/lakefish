@@ -9,7 +9,7 @@
 # load packages
 #-------------------------------------------------------------------------------
 
-
+library(ggplot2)
 library(rgbif)
 library(dplyr) # for data-wrangling
 library(rstudioapi)
@@ -62,14 +62,15 @@ download_key <- occ_download(
 # Download data when ready (see https://www.gbif.org/user/download). 
 # The preparation will of the data may take some time.
 temp <- tempdir()
-download.file(url=paste("http://api.gbif.org/v1/occurrence/download/request/",
-                        download_key[1],sep=""),
-              destfile=paste0(temp,"/tmp.zip"),
-              quiet=TRUE, mode="wb")
+# download.file(url=paste("http://api.gbif.org/v1/occurrence/download/request/",
+#                         download_key[1],sep=""),
+#               destfile=paste0(temp,"/tmp.zip"),
+#               quiet=TRUE, mode="wb")
 
 # or....
 # coffebreak version (see https://github.com/GBIF-Europe/nordic_oikos_2018_r/blob/master/s3_gbif_demo/Download_gbif.md)
 download_GBIF_API <- function(download_key,destfile_name,n_try,Sys.sleep_duration){
+  print(paste("Attempting to download data from GBIF with", n_try,"attempts at", Sys.sleep_duration, "second intervals."))
   start_time <- Sys.time()
   n_try_count <- 1
   
@@ -89,7 +90,7 @@ download_GBIF_API <- function(download_key,destfile_name,n_try,Sys.sleep_duratio
   }
 }
 download_GBIF_API(download_key=download_key,destfile_name=paste0(temp,"/tmp.zip"),n_try=5,Sys.sleep_duration=30)
-
+print(paste("------IGNORE THE WARNING MESSAGES------"))
 # read inn the occurrence data
 occ <- rio::import(unzip(paste0(temp,"/tmp.zip"),files="occurrence.txt"))
 if (!dir.exists(here::here("data"))){
