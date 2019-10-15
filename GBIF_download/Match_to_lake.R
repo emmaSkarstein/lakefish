@@ -3,7 +3,7 @@
 #  Match GBIF occurrence to lakes
 #
 ################################################################################
-
+library(ggplot2)
 library(sf)
 library(dplyr)
 library(mapview)
@@ -15,6 +15,9 @@ library(here)
 # sharing links below directs to a simple feture object (SF) stored in .rdf format
 #------------------------------------------------------------------------------
 
+# Run Download.R to download the data
+#source(here::here("GBIF_download","Download.R"))
+
 # Fennoscandian lake data convinience download -----------------------------------
 
 Finnish_data_url <- "https://api.loke.aws.unit.no/dlr-gui-backend-resources-content/v2/contents/links/565cfeef-59bb-44de-b616-4f7a02cbef408559ef0b-7ffd-4d03-b5b6-15a30a58b41f04742bb2-3f6f-4aef-9f09-a3e65861bdbf"
@@ -23,19 +26,15 @@ Swedish_data_url <- "https://api.loke.aws.unit.no/dlr-gui-backend-resources-cont
 Fennoscandia_data_url <- "https://api.loke.aws.unit.no/dlr-gui-backend-resources-content/v2/contents/links/571d50fd-6db0-45e7-b955-144407ecd33cb6afba4b-0762-44e7-9f8d-a3af4241f93953100f03-6f92-49af-97d9-aaac791a3c13"
 
 
-temp <- tempdir()
-#temp <- "C:/Users/Lyder/AppData/Local/Temp/RtmpUvsFlL"
-download.file(url = Norwegian_data_url,destfile = paste0(temp,"/lakes.rds"),mode = "wb")
-lakes <- readRDS(paste0(temp,"/lakes.rds"))
-unlink(temp)
-#saveRDS(object = lakes,file = "C:/Users/Lyder/GitRepos/CitizenScience/GBIF_download/lake_polygons.rds")# convinience storage of data locally
-#saveRDS(lakes,"//sambaad.stud.ntnu.no/lyderi/Documents/GitRepo/CitizenScience/lake_polygons.rds")
-if (!dir.exists(here::here("data"))){
-  dir.create(here::here("data"))
-}
-saveRDS(lakes,here::here("data","lake_polygons.rds"))
+# temp <- tempdir()
+# download.file(url = Norwegian_data_url,destfile = paste0(temp,"/lakes.rds"),mode = "wb")
+# lakes <- readRDS(paste0(temp,"/lakes.rds"))
+# unlink(temp)
+# if (!dir.exists(here::here("data"))){
+#   dir.create(here::here("data"))
+# }
+# saveRDS(lakes,here::here("data","lake_polygons.rds"))
 lakes <- readRDS(here::here("data","lake_polygons.rds"))
-
 
 #-------------------------------------------------------------------------------------------------
 # load GBIF occurrence data and convert to EPSG:32633 (or whatever the same as the lake dataset)
@@ -63,7 +62,7 @@ occ_sf <- occ %>%
 
 
 # Have a look at the data: 
-mapview(occ_sf)
+#mapview(occ_sf)
 
 #-------------------------------------------------------------------------------------------------
 # find closest lake, distance to closest lake, and join
@@ -97,7 +96,7 @@ end_time <- Sys.time()
 end_time - start_time
 
 occ_farfaraway <- occ_with_lakes %>% filter(dist_to_lake>0)
-mapview(occ_farfaraway)
+#mapview(occ_farfaraway)
 
 #-------------------------------------------------------------------------------------------------
 # Filter out occurrence records not matching lakes (given certain criteria)
@@ -105,7 +104,7 @@ mapview(occ_farfaraway)
 
 occ_matched <- occ_with_lakes %>% filter(dist_to_lake<10) # example, 10 m
 
-mapview(occ_matched)
+#mapview(occ_matched)
 
 
 # # trying st_nn function of the nngeo package - seems to move slow
