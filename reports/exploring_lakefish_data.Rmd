@@ -29,17 +29,20 @@ First, to download the data, ...
 #     Do we want to do any preparation beyond converting to sf-object?
 
 # Load data downloaded in "download.R". Also remove all variables that contain NA-values.
-occ <- readRDS(here::here("data","GBIF_download.rds")) %>% 
-  dplyr::select_if(~!all(is.na(.)))
+# occ <- readRDS(here::here("data","GBIF_download.rds")) %>% 
+#   dplyr::select_if(~!all(is.na(.)))
+# 
+# lakes <- readRDS(here::here("data","lake_polygons.rds"))
+# occ_sf <- occ %>% 
+#   st_as_sf(coords = c("decimalLongitude", "decimalLatitude"), crs = 4326) %>%    # Convert to sf object for easier handling. crs = Coordinate Reference System
+#   st_transform(st_crs(lakes)$epsg) %>%    # Transform coordinate system
+#   dplyr::select(gbifID, occurrenceID, catalogNumber, geometry, species, taxonKey, datasetKey, locality, municipality, county, countryCode, locationID, eventDate, year, month, day, samplingProtocol, eventID, fieldNumber, recordedBy, dynamicProperties, collectionCode, datasetName, license, institutionCode)    
+# Select a few of the variables
 
+
+#source(here::here("GBIF_download","Match_to_lake.R"))
+occ_matched <- readRDS(here::here("data","occ_matched.rds"))
 lakes <- readRDS(here::here("data","lake_polygons.rds"))
-occ_sf <- occ %>% 
-  st_as_sf(coords = c("decimalLongitude", "decimalLatitude"), crs = 4326) %>%    # Convert to sf object for easier handling. crs = Coordinate Reference System
-  st_transform(st_crs(lakes)$epsg) %>%    # Transform coordinate system
-  dplyr::select(gbifID, occurrenceID, catalogNumber, geometry, species, taxonKey, datasetKey, locality, municipality, county, countryCode, locationID, eventDate, year, month, day, samplingProtocol, eventID, fieldNumber, recordedBy, dynamicProperties, collectionCode, datasetName, license, institutionCode)    # Select a few of the variables
-
-
-source(here::here("GBIF_download","Match_to_lake.R"))
 ```
 
 Next, some basic plotting.
@@ -49,7 +52,9 @@ Next, some basic plotting.
 
 data.coords <- cbind(occ_matched$decimalLongitude, occ_matched$decimalLatitude)
 # data.coords <- SpatialPointsDataFrame(coords=cbind("long"=occ_matched$decimalLongitude, "lat"=occ_matched$decimalLatitude))
+
+# Plot presence/absence
 norway <- ggplot2::map_data("world", region = "Norway")
-ggplot() + geom_map(data = norway, map = norway, aes(long, lat, map_id=region), color="#2b2b2b", fill=NA) + geom_point(aes(x = occ_matched$decimalLongitude, y = occ_matched$decimalLatitude), size=0.01)
+ggplot() + geom_map(data = norway, map = norway, aes(long, lat, map_id=region), color="#2b2b2b", fill=NA) + geom_point(aes(x = lakes$decimalLongitude, y = lakes$decimalLatitude), size=0.001, color = "grey") + geom_point(aes(x = occ_matched$decimalLongitude, y = occ_matched$decimalLatitude), size=0.001, color = "red")
 
 ```

@@ -17,6 +17,7 @@ library(here)
 
 # Run Download.R to download the data
 #source(here::here("GBIF_download","Download.R"))
+occ <- readRDS(here::here("data", "GBIF_download.rds"))
 
 # Fennoscandian lake data convinience download -----------------------------------
 
@@ -82,15 +83,15 @@ occ_sf <- occ %>%
 
 # find closest lake
 start_time <- Sys.time()
-occ_with_lakes <- st_join(occ_sf1, lakes, join = st_nearest_feature)
+occ_with_lakes <- st_join(occ_sf, lakes, join = st_nearest_feature)
 end_time <- Sys.time()
 end_time - start_time
 
 # find distance to closest lake
 start_time <- Sys.time()
-index <- st_nearest_feature(x = occ_sf1, y = lakes) # index of closest lake
+index <- st_nearest_feature(x = occ_sf, y = lakes) # index of closest lake
 closest_lakes <- lakes %>% slice(index) # slice based on the index
-dist_to_lake <- st_distance(x = occ_sf1, y= closest_lakes, by_element = TRUE) # get distance
+dist_to_lake <- st_distance(x = occ_sf, y= closest_lakes, by_element = TRUE) # get distance
 occ_with_lakes$dist_to_lake <- as.numeric(dist_to_lake) # add the distance calculations to match data
 end_time <- Sys.time()
 end_time - start_time
@@ -105,6 +106,7 @@ occ_farfaraway <- occ_with_lakes %>% filter(dist_to_lake > 1000)
 
 occ_matched <- occ_with_lakes %>% filter(dist_to_lake <= 10) # example, 10 m
 
+saveRDS(occ_matched,here::here("data","occ_matched.rds"))
 #mapview(occ_matched)
 
 #-------------------------------------------------------------------------------------------------
