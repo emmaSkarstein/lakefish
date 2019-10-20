@@ -22,34 +22,18 @@ library(mapdata)
 ```
 
 First, to download the data, ... 
+
 ```{r}
 # Include completely minimal script to download data. 
 # Considerations: 
 #     Which data do we want to look at?
 #     Do we want to do any preparation beyond converting to sf-object?
 
-# Load data downloaded in "download.R". Also remove all variables that contain NA-values.
-# occ <- readRDS(here::here("data","GBIF_download.rds")) %>% 
-#   dplyr::select_if(~!all(is.na(.)))
-# 
-# lakes <- readRDS(here::here("data","lake_polygons.rds"))
-# occ_sf <- occ %>% 
-#   st_as_sf(coords = c("decimalLongitude", "decimalLatitude"), crs = 4326) %>%    # Convert to sf object for easier handling. crs = Coordinate Reference System
-#   st_transform(st_crs(lakes)$epsg) %>%    # Transform coordinate system
-#   dplyr::select(gbifID, occurrenceID, catalogNumber, geometry, species, taxonKey, datasetKey, locality, municipality, county, countryCode, locationID, eventDate, year, month, day, samplingProtocol, eventID, fieldNumber, recordedBy, dynamicProperties, collectionCode, datasetName, license, institutionCode)    
-# Select a few of the variables
-
-
 #source(here::here("GBIF_download","Match_to_lake.R"))
+
 occ_matched <- readRDS(here::here("data","occ_matched.rds"))
 lakes <- readRDS(here::here("data","lake_polygons.rds"))
 
-occ_sf <- occ %>% 
-  st_as_sf(coords = c("decimalLongitude", "decimalLatitude"), crs = 4326) %>%    # Convert to sf object for easier handling. crs = Coordinate Reference System
-  st_transform(st_crs(lakes)$epsg) %>%    # Transform coordinate system
-  dplyr::select(gbifID, occurrenceID, catalogNumber, geometry, species, taxonKey, datasetKey, locality, municipality, county, countryCode, locationID, eventDate, year, month, day, samplingProtocol, eventID, fieldNumber, recordedBy, dynamicProperties, collectionCode, datasetName, license, institutionCode)    # Select a few of the variables
-
-source(here::here("GBIF_download","Match_to_lake.R"))
 ```
 
 Next, some basic plotting.
