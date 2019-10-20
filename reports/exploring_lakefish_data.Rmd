@@ -38,7 +38,6 @@ occ_sf <- occ %>%
   st_transform(st_crs(lakes)$epsg) %>%    # Transform coordinate system
   dplyr::select(gbifID, occurrenceID, catalogNumber, geometry, species, taxonKey, datasetKey, locality, municipality, county, countryCode, locationID, eventDate, year, month, day, samplingProtocol, eventID, fieldNumber, recordedBy, dynamicProperties, collectionCode, datasetName, license, institutionCode)    # Select a few of the variables
 
-
 source(here::here("GBIF_download","Match_to_lake.R"))
 ```
 

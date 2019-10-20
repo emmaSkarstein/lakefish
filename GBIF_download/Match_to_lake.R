@@ -90,7 +90,7 @@ end_time - start_time
 start_time <- Sys.time()
 index <- st_nearest_feature(x = occ_sf1, y = lakes) # index of closest lake
 closest_lakes <- lakes %>% slice(index) # slice based on the index
-dist_to_lake <- st_distance(x = occ_sf1, y= closest_lakes, by_element = TRUE) # get distance
+dist_to_lake <- st_distance(x = occ_sf1, y = closest_lakes, by_element = TRUE) # get distance
 occ_with_lakes$dist_to_lake <- as.numeric(dist_to_lake) # add the distance calculations to match data
 end_time <- Sys.time()
 end_time - start_time
