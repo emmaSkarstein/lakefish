@@ -4,6 +4,7 @@
 #
 ################################################################################
 library(ggplot2)
+library(tmap)
 library(sf)
 library(dplyr)
 library(mapview)
@@ -12,7 +13,7 @@ library(here)
 #------------------------------------------------------------------------------
 # load lake layer
 # Example dataset used fennoscandian a lake dataset from the NOFA database (https://github.com/ninaNor/nofa/wiki)
-# sharing links below directs to a simple feture object (SF) stored in .rdf format
+# sharing links below directs to a simple feature object (SF) stored in .rds format
 #------------------------------------------------------------------------------
 
 # Run Download.R to download the data
@@ -36,6 +37,8 @@ Fennoscandia_data_url <- "https://api.loke.aws.unit.no/dlr-gui-backend-resources
 # }
 # saveRDS(lakes,here::here("data","lake_polygons.rds"))
 lakes <- readRDS(here::here("data","lake_polygons.rds"))
+
+
 
 #-------------------------------------------------------------------------------------------------
 # load GBIF occurrence data and convert to EPSG:32633 (or whatever the same as the lake dataset)
@@ -69,18 +72,6 @@ occ_sf <- occ %>%
 # find closest lake, distance to closest lake, and join
 #-------------------------------------------------------------------------------------------------
 
-# # find closest lake - and join
-# occ_sf1 <- occ_sf
-# start_time <- Sys.time()
-# garg <- st_join(occ_sf1, lakes, join = st_nearest_feature)
-# end_time <- Sys.time()
-# end_time - start_time
-
-# find distance to closest lake
-
-# selection for test purposes
-#occ_sf1 <- occ_sf[1:100,]
-
 # find closest lake
 start_time <- Sys.time()
 occ_with_lakes <- st_join(occ_sf, lakes, join = st_nearest_feature)
@@ -96,6 +87,7 @@ occ_with_lakes$dist_to_lake <- as.numeric(dist_to_lake) # add the distance calcu
 end_time <- Sys.time()
 end_time - start_time
 
+
 occ_farfaraway <- occ_with_lakes %>% filter(dist_to_lake > 1000)
 # mapview(occ_farfaraway)
 
@@ -107,7 +99,7 @@ occ_farfaraway <- occ_with_lakes %>% filter(dist_to_lake > 1000)
 occ_matched <- occ_with_lakes %>% filter(dist_to_lake <= 10) # example, 10 m
 
 saveRDS(occ_matched,here::here("data","occ_matched.rds"))
-#mapview(occ_matched)
+mapview(occ_matched)
 
 #-------------------------------------------------------------------------------------------------
 # Looking closer at occurrence records not matching lakes (given certain criteria)
@@ -124,13 +116,23 @@ cat("Number of observations further than 10m from a lake: ", nrow(occ_far_from_l
 # Now: do we wish to actually move the observations so they are in the lake?
 
 
+# --------------------------------------------------------------------------
+# Looking at only one county for easier handling
+# --------------------------------------------------------------------------
 
-# # trying st_nn function of the nngeo package - seems to move slow
-# #install.packages("nngeo")
-# library(nngeo)
-# occ_sf1 <- occ_sf[1:5,]
-# start_time <- Sys.time()
-# garg <- st_nn(occ_sf1, lakes, sparse = TRUE, k = 2, maxdist = 1500,
-#       returnDist = TRUE, progress = TRUE)
-# end_time <- Sys.time()
-# end_time - start_time
+lakes_tromso = filter(lakes, municipality == "Tromsø")
+object.size(lakes_tromso) # This is huge
+# Using st_simplify to reduce size a bit
+simp_lakes_tromso = st_simplify(lakes_tromso, dTolerance = 50)
+object.size(simp_lakes_tromso)
+
+occ_troms = filter(occ_with_lakes, county.y == "Troms")
+
+ggplot(occ_troms) + 
+  geom_sf()
+
+mapview(occ_troms)
+
+tm_shape(simp_lakes_tromso) + 
+  tm_polygons()
+
