@@ -19,6 +19,7 @@ library(ggmap) # also for nice maps
 library(maps)
 library(maptools)
 library(mapdata)
+library(cowplot)
 ```
 
 First, to download the data, ... 
@@ -45,7 +46,35 @@ data.coords <- cbind(occ_matched$decimalLongitude, occ_matched$decimalLatitude)
 # data.coords <- SpatialPointsDataFrame(coords=cbind("long"=occ_matched$decimalLongitude, "lat"=occ_matched$decimalLatitude))
 
 # Plot presence/absence
-norway <- ggplot2::map_data("world", region = "Norway")
+norway <- ggplot2::map_data("world", region = "Norway(?!:Svalbard)")
 ggplot() + geom_map(data = norway, map = norway, aes(long, lat, map_id=region), color="#2b2b2b", fill=NA) + geom_point(aes(x = lakes$decimalLongitude, y = lakes$decimalLatitude), size=0.001, color = "grey") + geom_point(aes(x = occ_matched$decimalLongitude, y = occ_matched$decimalLatitude), size=0.001, color = "red")
 
+```
+
+```{r}
+norway <- ggplot2::map_data("world", region = "Norway(?!:Svalbard)")
+
+occ_nona <- occ_matched[complete.cases(occ_matched$year,occ_matched$month,occ_matched$day),]
+
+pick <- function(condition){
+  function(d) d %>% filter(!!enquo(condition))
+}
+
+norway1980 <- ggplot(data = occ_nona, aes(x = decimalLongitude, y = decimalLatitude)) +
+  geom_map(data = norway, map = norway, aes(long, lat, map_id=region), color="#2b2b2b", fill="white") +
+  geom_point(data = pick(year<1980 & year>1970), size=0.001, color = "red")
+
+norway1990 <- ggplot(data = occ_nona, aes(x = decimalLongitude, y = decimalLatitude)) +
+  geom_map(data = norway, map = norway, aes(long, lat, map_id=region), color="#2b2b2b", fill="white") +
+  geom_point(data = pick(year<1990 & year>1980), size=0.001, color = "red")
+
+norway2000 <- ggplot(data = occ_nona, aes(x = decimalLongitude, y = decimalLatitude)) +
+  geom_map(data = norway, map = norway, aes(long, lat, map_id=region), color="#2b2b2b", fill="white") +
+  geom_point(data = pick(year<2000 & year>1990), size=0.001, color = "red")
+
+norway2010 <- ggplot(data = occ_nona, aes(x = decimalLongitude, y = decimalLatitude)) +
+  geom_map(data = norway, map = norway, aes(long, lat, map_id=region), color="#2b2b2b", fill="white") +
+  geom_point(data = pick(year<2010 & year>2000), size=0.001, color = "red")
+
+plot_grid(norway1980, norway1990, norway2000, norway2010, labels = "AUTO")
 ```
