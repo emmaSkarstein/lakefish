@@ -1,25 +1,24 @@
 #################################################################################
 #
-# download GBIF data by asyncronous download.
+# Download GBIF data by asyncronous download.
 # See https://github.com/GBIF-Europe/nordic_oikos_2018_r/blob/master/s3_gbif_demo/Download_gbif.md
 #
 ##################################################################################
 
 #-------------------------------------------------------------------------------
-# load packages
+# Load packages
 #-------------------------------------------------------------------------------
 
-library(ggplot2)
-library(rgbif)
-library(dplyr) # for data-wrangling
-library(rstudioapi)
-library(rio)
-library(here)
+library(rgbif)        # for interacting with gbif
+library(dplyr)        # for data-wrangling
+library(rstudioapi)   # for writing in user info
+library(rio)          # a swiss army knife for data I/O
+library(here)         # for knowing where we are
 
 
 
 #-------------------------------------------------------------------------------
-# register credentials 
+# Register credentials 
 #-------------------------------------------------------------------------------
 
 options(gbif_user=rstudioapi::askForPassword("my gbif username"))
@@ -31,10 +30,10 @@ options(gbif_pwd=rstudioapi::askForPassword("my gbif password"))
 # Set search parameters and get download KEY
 #-------------------------------------------------------------------------------
 
-# Salmo trutta - Ørret
+# Salmo trutta - Orret
 # Esox lucius - Gjedde
 # Salmo salar - Laks
-# Salvelinus alpinus - Røye
+# Salvelinus alpinus - Roye
 # Rutilus rutilus - Mort
 # Perca fluviatilis - Abbor
 # Cyprinus carpio - Karpe
