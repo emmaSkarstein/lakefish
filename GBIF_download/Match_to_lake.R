@@ -74,6 +74,8 @@ occ_sf <- occ %>%
 
 # find closest lake
 start_time <- Sys.time()
+# Now, st_join with join = st_nearest_feature means that each observation in
+# "occ_sf" is joined with the closest lake from "lakes" (geometrically).
 occ_with_lakes <- st_join(occ_sf, lakes, join = st_nearest_feature)
 end_time <- Sys.time()
 end_time - start_time
@@ -87,9 +89,9 @@ occ_with_lakes$dist_to_lake <- as.numeric(dist_to_lake) # add the distance calcu
 end_time <- Sys.time()
 end_time - start_time
 
-
+# mapview(occ_with_lakes)
 occ_farfaraway <- occ_with_lakes %>% filter(dist_to_lake > 1000)
-# mapview(occ_farfaraway)
+mapview(occ_farfaraway)
 
 
 #-------------------------------------------------------------------------------------------------
@@ -120,19 +122,21 @@ cat("Number of observations further than 10m from a lake: ", nrow(occ_far_from_l
 # Looking at only one county for easier handling
 # --------------------------------------------------------------------------
 
-lakes_tromso = filter(lakes, municipality == "Tromsø")
-object.size(lakes_tromso) # This is huge
+lakes_tr = filter(lakes, county == "Sør-Trøndelag")
+object.size(lakes_tr) # This is huge
 # Using st_simplify to reduce size a bit
-simp_lakes_tromso = st_simplify(lakes_tromso, dTolerance = 50)
-object.size(simp_lakes_tromso)
+simp_lakes_tr = st_simplify(lakes_tr, dTolerance = 50)
+object.size(simp_lakes_tr)
 
-occ_troms = filter(occ_with_lakes, county.y == "Troms")
+occ_tr = filter(occ_with_lakes, county.y == "Sør-Trøndelag", dist_to_lake < 1000)
 
-ggplot(occ_troms) + 
-  geom_sf()
+# Points color coded based on distance to closest lake
+ggplot() + 
+  geom_sf(data = lakes_tr) + 
+  geom_sf(data = occ_tr, aes(color = dist_to_lake)) 
 
-mapview(occ_troms)
+mapview(occ_tr)
 
-tm_shape(simp_lakes_tromso) + 
-  tm_polygons()
+
+
 
