@@ -24,7 +24,7 @@ library(here)         # for knowing where we are
 download_GBIF_API <- function(download_key,destfile_name,n_try,Sys.sleep_duration){
   # Coffebreak version (see https://github.com/GBIF-Europe/nordic_oikos_2018_r/blob/master/s3_gbif_demo/Download_gbif.md)
   
-  cat("Attempting to download data from GBIF with", n_try,"attempts at", Sys.sleep_duration, "second intervals.\n")
+  message("Attempting to download data from GBIF with", n_try,"attempts at", Sys.sleep_duration, "second intervals.\n")
   start_time <- Sys.time()
   n_try_count <- 1
   
@@ -39,7 +39,7 @@ download_GBIF_API <- function(download_key,destfile_name,n_try,Sys.sleep_duratio
     n_try_count <- n_try_count+1
     try_download <- try(download.file(url=download_url,destfile=destfile_name,
                                       quiet=TRUE, mode="wb"),silent = TRUE)
-    cat("trying... Download link not ready. Time elapsed (min):",
+    message("trying... Download link not ready. Time elapsed (min):",
         round(as.numeric(paste(difftime(Sys.time(),start_time, 
                                         units = "mins"))),2), "\n")
   }
@@ -58,17 +58,17 @@ download_lakefish <- function(latin_name, n_try = 10){
   #-------------------------------------------------------------------------------
   # Register credentials 
   #-------------------------------------------------------------------------------
-  cat("Register credentials\n")
+  message("Register credentials\n")
   
-  #options(gbif_user = rstudioapi::askForPassword("my gbif username"))
-  #options(gbif_email = rstudioapi::askForPassword("my registred gbif e-mail"))
-  #options(gbif_pwd = rstudioapi::askForPassword("my gbif password"))
+  options(gbif_user = rstudioapi::askForPassword("my gbif username"))
+  options(gbif_email = rstudioapi::askForPassword("my registred gbif e-mail"))
+  options(gbif_pwd = rstudioapi::askForPassword("my gbif password"))
   
   
   #-------------------------------------------------------------------------------
   # Set search parameters and get download KEY
   #-------------------------------------------------------------------------------
-  cat("Setting search parameters and getting download key...\n")
+  message("Setting search parameters and getting download key...\n")
   
   # Salmo trutta - Orret
   # Esox lucius - Gjedde
@@ -80,14 +80,14 @@ download_lakefish <- function(latin_name, n_try = 10){
   # Actinopterygii - Ray-finned fish
   
   # Find a taxonkey - get list of gbif keys to filter download
-  key <- name_suggest(q = toString(latin_name), rank='species')$key[1] 
+  key <- name_suggest(q = toString(latin_name), rank = 'species')$key[1] 
   
   
   
   #-------------------------------------------------------------------------
   # Send download request
   #-------------------------------------------------------------------------
-  cat("Sending download request...\n")
+  message("Sending download request...\n")
   
   # Spawn download request - careful, there is a max limit on simultanious downloads 
   # per user allowed by the GBIF API. 
@@ -107,13 +107,13 @@ download_lakefish <- function(latin_name, n_try = 10){
   download_GBIF_API(download_key = download_key, 
                     destfile_name = paste0(temp,"/tmp.zip"),
                     n_try = n_try, Sys.sleep_duration = 30)
-  cat("------IGNORE THE WARNING MESSAGES------")
+  message("------IGNORE THE WARNING MESSAGES------\n")
   
   
   #--------------------------------------------------------------------------
   # Read in the occurrence data
   #--------------------------------------------------------------------------
-  cat("Reading in the occurrence data...\n")
+  message("Reading in the occurrence data...\n")
   
   occ <- rio::import(unzip(paste0(temp,"/tmp.zip"), files = "occurrence.txt"))
   
@@ -123,6 +123,7 @@ download_lakefish <- function(latin_name, n_try = 10){
   }
   
   # Save the occurrence data to a file
+  message("Saving occurrence data as", paste0("GBIF_download_", key, ".rds\n"))
   saveRDS(occ, here::here("data", paste0("GBIF_download_", key, ".rds")))
   
   unlink(temp)
@@ -136,5 +137,7 @@ download_lakefish <- function(latin_name, n_try = 10){
   citation <- paste0("GBIF Occurrence Download https://doi.org/", 
                      download_key[2], " accessed via GBIF.org on ", 
                      Sys.Date())
-  return(occ)
+  
+  message("Your", latin_name, "-data has now been downloaded.\n")
+  return(citation)
 }
