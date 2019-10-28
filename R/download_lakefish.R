@@ -24,7 +24,7 @@ library(here)         # for knowing where we are
 download_GBIF_API <- function(download_key,destfile_name,n_try,Sys.sleep_duration){
   # Coffebreak version (see https://github.com/GBIF-Europe/nordic_oikos_2018_r/blob/master/s3_gbif_demo/Download_gbif.md)
   
-  message("Attempting to download data from GBIF with", n_try,"attempts at", Sys.sleep_duration, "second intervals.\n")
+  message("Attempting to download data from GBIF with ", n_try," attempts at ", Sys.sleep_duration, " second intervals.")
   start_time <- Sys.time()
   n_try_count <- 1
   
@@ -39,22 +39,22 @@ download_GBIF_API <- function(download_key,destfile_name,n_try,Sys.sleep_duratio
     n_try_count <- n_try_count+1
     try_download <- try(download.file(url=download_url,destfile=destfile_name,
                                       quiet=TRUE, mode="wb"),silent = TRUE)
-    message("trying... Download link not ready. Time elapsed (min):",
+    message("trying... Download link not ready. Time elapsed (min): ",
         round(as.numeric(paste(difftime(Sys.time(),start_time, 
-                                        units = "mins"))),2), "\n")
+                                        units = "mins"))),2))
   }
 }
 
 #' Download lakefish
 #'
-#' @param latin_name a character string, lating name of wanted species .
+#' @param latin_name a character string, latin name of wanted species.
 #' @param n_try numeric, number of download tries, default 10.
 #'
 #' @return Nothing, but saves occurrence data and key to "data" folder in current working directory.
 #' @export
 #'
 #' @examples
-download_lakefish <- function(latin_name, n_try = 10){
+download_lakefish <- function(latin_names, n_try = 10, file_marker = NA){
   #-------------------------------------------------------------------------------
   # Register credentials 
   #-------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ download_lakefish <- function(latin_name, n_try = 10){
   #-------------------------------------------------------------------------------
   # Set search parameters and get download KEY
   #-------------------------------------------------------------------------------
-  message("Setting search parameters and getting download key...\n")
+  message("Setting search parameters and getting download key...")
   
   # Salmo trutta - Orret
   # Esox lucius - Gjedde
@@ -80,19 +80,26 @@ download_lakefish <- function(latin_name, n_try = 10){
   # Actinopterygii - Ray-finned fish
   
   # Find a taxonkey - get list of gbif keys to filter download
-  key <- name_suggest(q = toString(latin_name), rank = 'species')$key[1] 
-  
+  for(i in 1:length(latin_names)){
+    key <- name_suggest(q = toString(latin_names[i]), rank = 'species')$key[1] 
+    if (i == 1){
+      keys <- key
+    } 
+    else {
+      keys <- paste0(keys, ",", key)
+    }
+  }
   
   
   #-------------------------------------------------------------------------
   # Send download request
   #-------------------------------------------------------------------------
-  message("Sending download request...\n")
+  message("Sending download request...")
   
   # Spawn download request - careful, there is a max limit on simultanious downloads 
   # per user allowed by the GBIF API. 
   download_key <- occ_download(
-    paste('taxonKey = ', key),
+    paste('taxonKey = ', keys),
     'hasCoordinate = TRUE',
     'country = NO',
     #geom_param,
@@ -107,13 +114,13 @@ download_lakefish <- function(latin_name, n_try = 10){
   download_GBIF_API(download_key = download_key, 
                     destfile_name = paste0(temp,"/tmp.zip"),
                     n_try = n_try, Sys.sleep_duration = 30)
-  message("------IGNORE THE WARNING MESSAGES------\n")
+  message("------IGNORE THE WARNING MESSAGES------")
   
   
   #--------------------------------------------------------------------------
   # Read in the occurrence data
   #--------------------------------------------------------------------------
-  message("Reading in the occurrence data...\n")
+  message("Reading in the occurrence data...")
   
   occ <- rio::import(unzip(paste0(temp,"/tmp.zip"), files = "occurrence.txt"))
   
@@ -122,22 +129,27 @@ download_lakefish <- function(latin_name, n_try = 10){
     dir.create(here::here("data"))
   }
   
+  # Set the file-marker (string to be aded to file-name) to keys if not given
+  if (is.na(file_marker)){
+    file_marker <- keys
+  }
+  
   # Save the occurrence data to a file
-  message("Saving occurrence data as", paste0("GBIF_download_", key, ".rds\n"))
-  saveRDS(occ, here::here("data", paste0("GBIF_download_", key, ".rds")))
+  message("Saving occurrence data as ", paste0("GBIF_download_", file_marker, ".rds\n"))
+  saveRDS(occ, here::here("data", paste0("GBIF_download_", file_marker, ".rds")))
   
   unlink(temp)
   unlink(here::here("GBIF_download", "occurrence.txt"))
   
   
   # Write download key and citation to .rds files for reference (also available on https://www.gbif.org/user/download)
-  saveRDS(download_key,here::here("data", paste0("GBIF_download_key_", key, ".rds")))
+  saveRDS(download_key,here::here("data", paste0("GBIF_download_key_", file_marker, ".rds")))
   
   # CITE YOUR DATA!!! 
   citation <- paste0("GBIF Occurrence Download https://doi.org/", 
                      download_key[2], " accessed via GBIF.org on ", 
                      Sys.Date())
   
-  message("Your", latin_name, "-data has now been downloaded.\n")
-  return(citation)
+  message("Your", latin_names, "-data has now been downloaded.")
+  return(list(citation = citation, key = keys))
 }

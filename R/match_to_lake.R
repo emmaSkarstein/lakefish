@@ -57,7 +57,8 @@ match_to_lake <- function(data, lake_polygons, max_dist_from_lake = 10){
   occ_far_from_lake <- occ_with_lakes %>% filter(dist_to_lake > max_dist_from_lake)
   
   # Observations outside limit:
-  message("Done! We have removed ", round(nrow(occ_far_from_lake)/nrow(occ_with_lakes)*100), "% of the original observations.")
+  message("Number of observations further than ", max_dist_from_lake ,"m from a lake: ", nrow(occ_far_from_lake))
+  message("Done! We removed ", round(nrow(occ_far_from_lake)/nrow(occ_with_lakes)*100), "% of the original observations.")
 
   return(list(occ_matched, occ_with_lakes))
 }

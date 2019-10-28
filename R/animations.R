@@ -1,11 +1,11 @@
 #-----------------------------------------------------------------------------------
 # Animations
 #-----------------------------------------------------------------------------------
-name <- "Rutilus rutilus"
+name <- "Salmo trutta"
 
-download_lakefish(name)
-lakes <- readRDS(here::here("data","lake_polygons.rds"))
-occ <- readRDS(here::here("data", "GBIF_download_2359706.rds"))
+key = download_lakefish(name)$key
+lakes <- readRDS(here::here("data", "lake_polygons.rds"))
+occ <- readRDS(here::here("data", paste0("GBIF_download_", key, ".rds")))
 occ_list <- match_to_lake(occ, lakes)
 occ_matched <- occ_list[[1]]
 
@@ -23,7 +23,5 @@ ggplot(occ_time) +
              show.legend = FALSE, alpha = 0.6, size = 1.5, color = "red3")  +
   labs(title = paste0(name, ', year: {frame_time}')) + 
   transition_time(year)
-#  shadow_mark(alpha = 0.1, size = 0.3)
-beep(sound = 9)
 
 anim_save("fish_animation.gif")
