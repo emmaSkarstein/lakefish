@@ -22,38 +22,59 @@ library(mapdata)
 library(cowplot)
 ```
 
+## About the data
+
 We will be looking at observations of freshwater fish in Norwegian lakes. Our observations are obtained from GBIF (more formal referencing of data somehow?), by first downloading all ray-finned fish (Actinopterygii) observations registered in Norway, and then filtering these based on the following steps:
 
-1. Filter out species not in list of Norwegian freshwater fish, as described by SNL (see list below)
+1. Filter out species not in list of Norwegian freshwater fish, as described by SNL
 2. Match all species to closest lake, and remove observation further than 10 meters from the closest lake
-3. Remove species with less than 1000 observations
-4. Remove all observations with no time
+3. Remove all observations with no time variable.
+4. Select 12 most prevalent species. 
+
+
+The list of fish we downloaded can be seen below. We excluded fish that spawn in salt water, so some species that may be observed in lakes, such as eel (_Anguilla anguilla_) and European flounder (_Platichthys flesus_), have been excluded from our analysis as a result of this. 
 
 ```{r}
 fish_names <- read.table(here::here("fish_names.txt", sep = "\n"), stringsAsFactors = FALSE)[,1]
-cat(fish_names)
+cat(fish_names, sep = ", ")
 ```
 
-```{r}
+```{r, include = FALSE}
 occ_matched <- readRDS(here::here("data","occ_matched.rds"))
 lakes <- readRDS(here::here("data","lake_polygons.rds"))
 #(på emma sin pc:)
 occ_matched <- readRDS(here::here("data", paste0("GBIF_download_all_fish_matched.rds")))
 ```
 
+## Preliminary insights
+
 First, let us take a look at the number of observations of each species. 
-```{r}
+
+```{r, echo = FALSE}
 # Bar plot of different species
 species_counts <- count(large_occ, vars = species)
 ggplot(species_counts, aes(x = vars, y = n)) + 
-  geom_bar(stat = "identity", color="black", fill="white") + 
+  geom_bar(stat = "identity", color="black", fill="antiquewhite") + 
+  geom_text(aes(label = n), vjust=-0.3, color="black", size=2.3) +
   theme_light() + 
   theme(text = element_text(size = 10), 
         axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
+Here we see that the trout outranks the other species by quite a bit, although the European perch and arctic char are also quite prevalent.
 
-```{r, wa}
+It is also interesting to take a look at when the observations were made. An important characteristic of our data is the fact that the observations appear at very irregular times, there are some years where there seem to be large studies of many lakes, while other years there are only a few single observations. The earliest observation is made in `r min(occ_matched$year)`, but the first decades are mostly just observations made in single lakes and are not very numerous. We look at the observation counts for the years after 1970, which is when observations start increasing.
+```{r}
+recent_occ <- large_occ %>% filter(year >= 1970)
+time_counts_recent <- count(recent_occ, year, species)
+ggplot(time_counts_recent, aes(x = year, y = n, fill = species)) + 
+  geom_bar(stat = "identity", color="black", position = position_stack(reverse = FALSE)) + 
+  theme_light() + 
+  scale_fill_brewer(palette="Paired") + 
+  theme(legend.text = element_text(size=7))
+```
+
+```{r}
 # Faceted plots of all species data
 ggplot(large_occ) +
   geom_map(data = norway, map = norway, aes(long, lat, map_id=region), 
