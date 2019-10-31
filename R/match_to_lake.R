@@ -1,3 +1,5 @@
+library(sf)
+
 #' Match to lake
 #' 
 #' Given a data set of lakefish observations, the function checks if observations are in a lake, and if they are not, matches them to the closest one. (more?)

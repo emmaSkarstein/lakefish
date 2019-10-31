@@ -60,9 +60,9 @@ download_lakefish <- function(latin_names, n_try = 10, file_marker = NA){
   #-------------------------------------------------------------------------------
   message("Register credentials\n")
   
-  options(gbif_user = rstudioapi::askForPassword("my gbif username"))
-  options(gbif_email = rstudioapi::askForPassword("my registred gbif e-mail"))
-  options(gbif_pwd = rstudioapi::askForPassword("my gbif password"))
+  #options(gbif_user = rstudioapi::askForPassword("my gbif username"))
+  #options(gbif_email = rstudioapi::askForPassword("my registred gbif e-mail"))
+  #options(gbif_pwd = rstudioapi::askForPassword("my gbif password"))
   
   
   #-------------------------------------------------------------------------------
@@ -150,6 +150,6 @@ download_lakefish <- function(latin_names, n_try = 10, file_marker = NA){
                      download_key[2], " accessed via GBIF.org on ", 
                      Sys.Date())
   
-  message("Your", latin_names, "-data has now been downloaded.")
+  message("Your ", latin_names, "-data has now been downloaded.")
   return(list(citation = citation, key = keys))
 }

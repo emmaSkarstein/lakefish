@@ -75,7 +75,9 @@ ggplot(occ_cut, aes(x=dist_to_lake)) +
   ggtitle("Histogram of log of distance to closest lake for removed data") + 
   scale_x_log10()
 
+#---------------------------------------------------------------------------
 # Testing two species
+#---------------------------------------------------------------------------
 name <- c("Carassius auratus", "Aspius aspius")
 download_lakefish(name, file_marker = "two_fish")
 beep(sound = 4)
@@ -89,5 +91,3 @@ beep(sound = 4)
 occ_matched <- occ_list[[1]]
 occ_w_lakes <- occ_list[[2]]
 
-# Testing all lakefish
-fish_names <- read.table("fish_names.txt", sep = "\n", stringsAsFactors = FALSE)[,1]
