@@ -22,25 +22,48 @@ library(mapdata)
 library(cowplot)
 ```
 
-First, to download the data, ... 
+We will be looking at observations of freshwater fish in Norwegian lakes. Our observations are obtained from GBIF (more formal referencing of data somehow?), by first downloading all ray-finned fish (Actinopterygii) observations registered in Norway, and then filtering these based on the following steps:
+
+1. Filter out species not in list of Norwegian freshwater fish, as described by SNL (see list below)
+2. Match all species to closest lake, and remove observation further than 10 meters from the closest lake
+3. Remove species with less than 1000 observations
+4. Remove all observations with no time
 
 ```{r}
-# Include completely minimal script to download data. 
-# Considerations: 
-#     Which data do we want to look at?
-#     Do we want to do any preparation beyond converting to sf-object?
-
-#source(here::here("GBIF_download","Match_to_lake.R"))
-
-occ_matched <- readRDS(here::here("data","occ_matched.rds"))
-lakes <- readRDS(here::here("data","lake_polygons.rds"))
-
+fish_names <- read.table(here::here("fish_names.txt", sep = "\n"), stringsAsFactors = FALSE)[,1]
+cat(fish_names)
 ```
 
-Next, some basic plotting.
 ```{r}
-# Using mapview in the rmd-document does work and produces super nice plot, but it takes absolutely for ever to run.
-# mapview(occ_sf)
+occ_matched <- readRDS(here::here("data","occ_matched.rds"))
+lakes <- readRDS(here::here("data","lake_polygons.rds"))
+#(på emma sin pc:)
+occ_matched <- readRDS(here::here("data", paste0("GBIF_download_all_fish_matched.rds")))
+```
+
+First, let us take a look at the number of observations of each species. 
+```{r}
+# Bar plot of different species
+species_counts <- count(large_occ, vars = species)
+ggplot(species_counts, aes(x = vars, y = n)) + 
+  geom_bar(stat = "identity", color="black", fill="white") + 
+  theme_light() + 
+  theme(text = element_text(size = 10), 
+        axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+```{r, wa}
+# Faceted plots of all species data
+ggplot(large_occ) +
+  geom_map(data = norway, map = norway, aes(long, lat, map_id=region), 
+           color="#2b2b2b", fill = "white") + 
+  geom_point(aes(x = decimalLongitude, y = decimalLatitude), 
+             show.legend = FALSE, alpha = 0.5, size = 1, color = "red3")  +
+  facet_wrap(~ species, ncol = 4)
+```
+
+```{r}
 
 data.coords <- cbind(occ_matched$decimalLongitude, occ_matched$decimalLatitude)
 # data.coords <- SpatialPointsDataFrame(coords=cbind("long"=occ_matched$decimalLongitude, "lat"=occ_matched$decimalLatitude))
