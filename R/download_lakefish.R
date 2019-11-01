@@ -70,15 +70,6 @@ download_lakefish <- function(latin_names, n_try = 10, file_marker = NA){
   #-------------------------------------------------------------------------------
   message("Setting search parameters and getting download key...")
   
-  # Salmo trutta - Orret
-  # Esox lucius - Gjedde
-  # Salmo salar - Laks
-  # Salvelinus alpinus - Roye
-  # Rutilus rutilus - Mort
-  # Perca fluviatilis - Abbor
-  # Cyprinus carpio - Karpe
-  # Actinopterygii - Ray-finned fish
-  
   # Find a taxonkey - get list of gbif keys to filter download
   for(i in 1:length(latin_names)){
     key <- name_suggest(q = toString(latin_names[i]), rank = 'species')$key[1] 
