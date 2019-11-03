@@ -54,15 +54,15 @@ download_GBIF_API <- function(download_key,destfile_name,n_try,Sys.sleep_duratio
 #' @export
 #'
 #' @examples
-download_lakefish <- function(latin_names, n_try = 10, file_marker = NA){
+download_lakefish <- function(latin_names, n_try = 10, file_marker = NA, key_num = NA){
   #-------------------------------------------------------------------------------
   # Register credentials 
   #-------------------------------------------------------------------------------
   message("Register credentials\n")
   
-  #options(gbif_user = rstudioapi::askForPassword("my gbif username"))
-  #options(gbif_email = rstudioapi::askForPassword("my registred gbif e-mail"))
-  #options(gbif_pwd = rstudioapi::askForPassword("my gbif password"))
+  options(gbif_user = rstudioapi::askForPassword("my gbif username"))
+  options(gbif_email = rstudioapi::askForPassword("my registred gbif e-mail"))
+  options(gbif_pwd = rstudioapi::askForPassword("my gbif password"))
   
   
   #-------------------------------------------------------------------------------
@@ -71,15 +71,21 @@ download_lakefish <- function(latin_names, n_try = 10, file_marker = NA){
   message("Setting search parameters and getting download key...")
   
   # Find a taxonkey - get list of gbif keys to filter download
-  for(i in 1:length(latin_names)){
-    key <- name_suggest(q = toString(latin_names[i]), rank = 'species')$key[1] 
-    if (i == 1){
-      keys <- key
-    } 
-    else {
-      keys <- paste0(keys, ",", key)
+  if (is.na(key_num)){
+    for(i in 1:length(latin_names)){
+      key <- name_suggest(q = toString(latin_names[i]), rank = 'species')$key[1] 
+      if (i == 1){
+        keys <- key
+      } 
+      else {
+        keys <- paste0(keys, ",", key)
+      }
     }
   }
+  else {
+    keys <- key_num
+  }
+  
   
   
   #-------------------------------------------------------------------------

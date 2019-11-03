@@ -10,7 +10,7 @@ knitr::opts_chunk$set(fig.width=12, fig.height = 8,
                       echo=FALSE, warning=FALSE, message=FALSE)
 ```
 
-```{r}
+```{r libraries}
 library(ggplot2)
 library(sf) # for sf objects
 library(dplyr) # for smoother dataframe-manipulation
@@ -18,6 +18,7 @@ library(gganimate)
 library(maps)
 library(maptools)
 library(mapdata)
+library(viridis)
 library(cowplot)
 ```
 
@@ -33,17 +34,14 @@ We will be looking at observations of freshwater fish in Norwegian lakes. Our ob
 
 The list of fish we downloaded can be seen below. We excluded fish that spawn in salt water, so some species that may be observed in lakes, such as eel (_Anguilla anguilla_) and European flounder (_Platichthys flesus_), have been excluded from our analysis as a result of this. 
 
-```{r}
+```{r fishnames}
 fish_names <- read.table("fish_names.txt", sep = "\n", stringsAsFactors = FALSE)[,1]
 cat(fish_names, sep = ", ")
 ```
 
-```{r}
-# Rmarkdown ser ut til å ha problemer med å lokalisere datafilene som ligger i en annen mappe enn selve mappa der rapporten ligger, så jeg legger inn de to data-filene vi trenger der
+```{r loading_data}
+# Rmarkdown ser ut til å ha problemer med å lokalisere datafilene som ligger i en annen mappe enn selve mappa der rapporten ligger, så jeg legger inn de data-filene vi trenger der
 
-#occ_matched <- readRDS(here::here("data","occ_matched.rds"))
-#lakes <- readRDS(here::here("data","lake_polygons.rds"))
-#(på emma sin pc:)
 # Loading filtered observations
 occ <- readRDS("filtered_occurences.rds")
 #lakes <- readRDS("lake_polygons.rds")
@@ -52,22 +50,23 @@ occ <- readRDS("filtered_occurences.rds")
 ## Preliminary insights
 
 To begin with, for the sake of us non-biologists, here are the latin, English and Norwegian names of the twelve included species.
-- Phoxinus phoxinus - Minnow - Ørekyte
-- Rutilus rutilus - Roach - Mort      
-- Salmo trutta - Trout - Ørret
-- Esox lucius - Pike - Gjedde        
-- Salmo salar - Salmon - Laks          
-- Gasterosteus aculeatus
-- Lota lota
-- Perca fluviatilis - Perch - Abbor
-- Salvelinus alpinus - - Røye  
-- Coregonus lavaretus
-- Coregonus albula
-- Salvelinus fontinalis 
+
+* Phoxinus phoxinus - Minnow - Ørekyte
+* Rutilus rutilus - Roach - Mort      
+* Salmo trutta - Trout - Ørret
+* Esox lucius - Pike - Gjedde        
+* Salmo salar - Salmon - Laks          
+* Gasterosteus aculeatus - Three-spined stickleback - Trepigget stingsild
+* Lota lota - Burbot - Lake
+* Perca fluviatilis - Perch - Abbor
+* Salvelinus alpinus - Arctic char - Røye  
+* Coregonus lavaretus - Lavaret - Sik
+* Coregonus albula - European cisco - Lagesild
+* Salvelinus fontinalis - Brook char - Bekkerøye
 
 Let us take a look at the number of observations of each species. 
 
-```{r, echo = FALSE}
+```{r species_barplot, echo = FALSE}
 # Bar plot of different species
 species_counts <- count(occ, vars = species)
 ggplot(species_counts, aes(x = vars, y = n)) + 
@@ -84,7 +83,7 @@ Here we see that _Salmo trutta_ (trout) outranks the other species by quite a bi
 
 It is also interesting to take a look at when the observations were made. An important characteristic of our data is the fact that the observations appear at very irregular times, there are some years when there seem to be large studies of many lakes, while other years there are only a few single observations. The earliest observation is made in `r min(occ$year)`, but the first decades are mostly just observations made in single lakes and are not very numerous. We look at the observation counts for the years after 1970, which is when observations really start increasing.
 
-```{r}
+```{r years_barplot}
 recent_occ <- occ %>% filter(year >= 1970)
 time_counts_recent <- count(recent_occ, year, species)
 
@@ -102,9 +101,23 @@ ggplot(time_counts_recent, aes(x = year, y = n, fill = species)) +
 
 So 1993 was the big lakefish year, especially for _Salmo trutta_ and _Salvelinus alpinus_. It is also interesting to note that there are relatively many observations of _Coregunus albula_ and _Coregonus lavaretus_ during the period 2002 to 2005, and barely any at all the other years. The _Perca fluviatilis_ is also interesting in the sense that the species are fairly stable over time, there are quite a few observations every year, but never any huge spikes such as _S. trutta_ and _S. alpinus_ have in 1993.
 
+Lastly, we also take a look at where the observations are made.
+```{r fylke_barplot}
+dense_fylke <- count(occ, vars = county.y)
+colnames(dense_fylke) <- c("county.y", "obs_in_county", "geometry")
+ggplot(dense_fylke, aes(x = county.y, y = obs_in_county)) + 
+  geom_bar(stat = "identity", color="black", fill="antiquewhite") + 
+  geom_text(aes(label = obs_in_county), vjust=-0.3, color="black", size=4) +
+  theme_light() + 
+  ylab("Number of observations") +
+  theme(text = element_text(size = 15), 
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title.x = element_blank())
+```
+
 ## Plotting data on the map
 First, let us look at all the observations on a map of Norway.
-```{r}
+```{r all_obs_map}
 norway <- ggplot2::map_data("world", region = "Norway(?!:Svalbard)") 
 # Set theme for blue ocean
 theme_set(theme_light() + theme(aspect.ratio = .70, panel.background = element_rect(fill = "aliceblue")))
@@ -114,8 +127,7 @@ ggplot(occ) +
            color="#2b2b2b", fill = "white") + 
   geom_point(aes(x = decimalLongitude, y = decimalLatitude, color = species), alpha = 0.6, size = 0.5) + 
   scale_color_brewer(palette="Paired") +
-  theme(#legend.text = element_text(size=7), 
-        axis.title.x = element_blank(), 
+  theme(axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
   guides(colour = guide_legend(override.aes = list(size=2)))
 
@@ -123,14 +135,13 @@ ggplot(occ) +
 
 So, we can definitely see _something_ here, but it is a bit of a mess. We have added some transparency to the points, but they are still very much on top of each other, so this does not necessarily convey what we want it to. Let us facet it into one map per species to tidy it up a bit.
 
-```{r, fig.width = 12, fig.height = 12}
+```{r all_obs_faceted, fig.width = 12, fig.height = 12}
 ggplot(occ) +
   geom_map(data = norway, map = norway, aes(long, lat, map_id=region), 
            color="#2b2b2b", fill = "white") + 
   geom_point(aes(x = decimalLongitude, y = decimalLatitude, color = species), alpha = 0.6, size = 0.1) + 
   scale_color_brewer(palette="Paired") +
-  theme(legend.text = element_text(size=7), 
-        axis.title.x = element_blank(), 
+  theme(axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
   guides(colour = guide_legend(override.aes = list(size=2))) + 
   facet_wrap(~ species, nrow = 4)
@@ -140,7 +151,7 @@ ggplot(occ) +
 
 In order to introduce another dimension here, let us look at the data animated over time.
 
-```{r}
+```{r all_obs_animated}
 a <- ggplot(occ) +
   geom_map(data = norway, map = norway, aes(long, lat, map_id=region), 
            color="#2b2b2b", fill = "white") + 
@@ -153,7 +164,7 @@ a <- ggplot(occ) +
   labs(title = paste0("All freshwater fish", ', year: {frame_time}')) + 
   transition_time(year)
 
-# animate(a, duration = length(unique(occ$year))*0.5, end_pause = 4)
+#animate(a, duration = length(unique(occ$year))*0.5, end_pause = 4)
 
 ```
 
@@ -161,7 +172,7 @@ a <- ggplot(occ) +
 
 Again, let us facet this by species in order to see a bit more detail.
 
-```{r, fig.width = 12, fig.height = 12}
+```{r all_obs_animated_faceted, fig.width = 12, fig.height = 12}
 a <- ggplot(occ) +
   geom_map(data = norway, map = norway, aes(long, lat, map_id=region), 
            color="#2b2b2b", fill = "white") + 
@@ -175,49 +186,67 @@ a <- ggplot(occ) +
   labs(title = paste0("All freshwater fish", ', year: {frame_time}')) + 
   transition_time(year)
 
-# animate(a, duration = length(unique(occ$year))*0.5, end_pause = 4)
+#animate(a, duration = length(unique(occ$year))*0.5, end_pause = 4)
 ```
 
 (comment on animation faceted by species)
 
 When we looked at the bar plot of observations per year at the beginning of this report, we noted that _Perca fluviatilis_ was one of few species that had fairly stable observation numbers across years. It may be interesting to view these observations in an animation.
 
-```{r}
+```{r perca_fluviatilis}
 # Code for _Perca fluviatilis_ animation
 ```
 
-In the animations above we got a sense of the observations over time, but the constant movement of the animation makes it a bit difficult to absorb. Here we have divided all the observations from 1970 to 2010 into four sections: 1970 - 1979, 1980 - 1989, 1990 - 1999 and 2000 - 2010, and we plot all species for each time period.
+In the animations above we got a sense of the observations over time, but the constant movement of the animation makes it a bit difficult to absorb. Here we have divided all the observations from 1970 to 2010 into four sections: 1971 - 1980, 1981 - 1990, 1991 - 2000 and 2001 - 2010, and we plot all species for each time period.
 
-```{r}
-# OBS: some updates needed here, excluding the 10-years
+```{r all_obs_four_periods}
 pick <- function(condition){
   function(d) d %>% filter(!!enquo(condition))
 }
 
 norway1980 <- ggplot(data = occ, aes(x = decimalLongitude, y = decimalLatitude)) +
   geom_map(data = norway, map = norway, aes(long, lat, map_id=region), color="#2b2b2b", fill="white") +
-  geom_point(data = pick(year<1980 & year>1970), size=0.001, color = "red3")
+  geom_point(data = pick(year<=1980 & year>1970), size=0.001, color = "red3")
 
 norway1990 <- ggplot(data = occ, aes(x = decimalLongitude, y = decimalLatitude)) +
   geom_map(data = norway, map = norway, aes(long, lat, map_id=region), color="#2b2b2b", fill="white") +
-  geom_point(data = pick(year<1990 & year>1980), size=0.001, color = "red3")
+  geom_point(data = pick(year<=1990 & year>1980), size=0.001, color = "red3")
 
 norway2000 <- ggplot(data = occ, aes(x = decimalLongitude, y = decimalLatitude)) +
   geom_map(data = norway, map = norway, aes(long, lat, map_id=region), color="#2b2b2b", fill="white") +
-  geom_point(data = pick(year<2000 & year>1990), size=0.001, color = "red3")
+  geom_point(data = pick(year<=2000 & year>1990), size=0.001, color = "red3")
 
 norway2010 <- ggplot(data = occ, aes(x = decimalLongitude, y = decimalLatitude)) +
   geom_map(data = norway, map = norway, aes(long, lat, map_id=region), color="#2b2b2b", fill="white") +
-  geom_point(data = pick(year<2010 & year>2000), size=0.001, color = "red3")
+  geom_point(data = pick(year<=2010 & year>2000), size=0.001, color = "red3")
 
 plot_grid(norway1980, norway1990, norway2000, norway2010, labels = "AUTO")
 ```
 
 (comments on plot)
 
+By counting the number of unique species per lake we can find the species richness per lake. 
+```{r species_richness}
+rich_lakes <- occ %>% group_by(waterBody) %>% summarize(unique_spec = n_distinct(species))
+colnames(rich_lakes) <- c("waterBody", "unique_spec", "geometry")
+rich_lakes <- st_set_geometry(rich_lakes, NULL)
+rich_lakes_w_loc <- merge(rich_lakes, occ, by = "waterBody")
+
+ggplot(rich_lakes_w_loc) + 
+  geom_map(data = norway, map = norway, aes(long, lat, map_id=region), 
+           color="#2b2b2b", fill = "white") + 
+  geom_point(aes(x = decimalLongitude, y = decimalLatitude, color = unique_spec), alpha = 0.5, size = 1) +
+  scale_colour_viridis(option = "magma")
+```
+
+(comment on this, maybe with reference to barplot of fylke)
+
+```{r, eval = TRUE}
+head(arrange(rich_lakes, by_group = unique_spec))
+```
 
 
 Next plots:
-- Look at species richness per lake 
-- Would it be interesting to zoom in somewhere?
+
+* Would it be interesting to zoom in somewhere? 
 
