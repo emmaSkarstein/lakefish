@@ -202,7 +202,7 @@ a <- ggplot(occ %>% filter(species == "Perca fluviatilis")) +
   theme(axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
   guides(colour = guide_legend(override.aes = list(size=2))) +
-  labs(title = paste0("All freshwater fish", ', year: {frame_time}')) + 
+  labs(title = paste0("Perca fluviatilis (perch)", ', year: {frame_time}')) + 
   transition_time(year)
 
 animate(a, duration = length(unique(occ$year))*0.5, end_pause = 4)

@@ -68,4 +68,3 @@ for (i in species_table$species){
     theme(legend.position = c(1,0), legend.justification = c(1,0)) +
     labs(color = "Species")
   ggsave(filename = paste0("plot", i, ".png"), plot = species_plot, path = here::here("data"),width=10,height = 10)
-}
