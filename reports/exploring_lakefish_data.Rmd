@@ -1,8 +1,8 @@
 ---
 title: "Exploring lakefish data"
-author: "Emma Sofie Skarstein and Lyder Iversen"
+author: "Emma Sofie Skarstein and Lyder Bøe Iversen"
 date: "November 2019"
-output: bookdown::html_document2
+output: html_document
 ---
 
 ```{r global_options, include=FALSE}
@@ -137,14 +137,15 @@ So, we can definitely see _something_ here, but it is a bit of a mess. We have a
 ggplot(occ) +
   geom_map(data = norway, map = norway, aes(long, lat, map_id=region), 
            color="#2b2b2b", fill = "white") + 
-  geom_point(aes(x = decimalLongitude, y = decimalLatitude), alpha = 0.6, size = 0.1, color = "dodgerblue3") + 
+  geom_point(aes(x = decimalLongitude, y = decimalLatitude, color = species), alpha = 0.6, size = 0.3) + 
+  scale_color_brewer(palette="Paired") +
   theme(axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
   guides(colour = guide_legend(override.aes = list(size=2))) + 
   facet_wrap(~ species, nrow = 4)
 ```
 
-(Comments on this plot)
+Here, it is interesting to note that different species seem to have very distinct locations. This could simply be due to that there may be studies targeting specific species in some areas, but maybe it also reflects to some degree where the species live. Specifically, we see a lot of species that are only (or mainly) in eastern Norway (Finnmark and Hedmark), while others, such as _S. trutta_, have a good spread. There are some exceptions to this: _S. fontinalis_ is only in the very south of Norway, _C. lavaretus_ is more in the central part of southern Norway, and _G. aculeatus_ is mostly in western Norway. Also, _S. alpinus_ is mostly in the north of Norway. It would be interesting to examine if this cioincides with common knowledge.
 
 In order to introduce another dimension here, let us look at the data animated over time.
 
@@ -165,18 +166,16 @@ animate(a, duration = length(unique(occ$year))*0.5, end_pause = 4)
 
 ```
 
-(comments on animation of all species)
-
 Again, let us facet this by species in order to see a bit more detail.
 
 ```{r all_obs_animated_faceted, fig.width = 12, fig.height = 12}
 a <- ggplot(occ) +
   geom_map(data = norway, map = norway, aes(long, lat, map_id=region), 
            color="#2b2b2b", fill = "white") + 
-  geom_point(aes(x = decimalLongitude, y = decimalLatitude), alpha = 0.6, size = 1, color = "dodgerblue3") + 
+  geom_point(aes(x = decimalLongitude, y = decimalLatitude, color = species), alpha = 0.6, size = 1) + 
+  scale_color_brewer(palette="Paired") +
   theme(axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
-  guides(colour = guide_legend(override.aes = list(size=2))) +
   facet_wrap(~ species, nrow = 4) + 
   labs(title = paste0("All freshwater fish", ', year: {frame_time}')) + 
   transition_time(year)
@@ -184,10 +183,11 @@ a <- ggplot(occ) +
 animate(a, duration = length(unique(occ$year))*0.5, end_pause = 4)
 ```
 
-(comment on animation faceted by species)
+This is a little easier to look at. 
+
 It is slightly worrying to note here that there seem to be observations in Sweden. This is especially worrying since this was not the case in the non-faceted animation. This should be examined further.
 
-When we looked at the bar plot of observations per year at the beginning of this report, we noted that _Perca fluviatilis_ was one of few species that had fairly stable observation numbers across years. It may be interesting to view these observations in an animation.
+When we looked at the bar plot of observations per year at the beginning of this report, we noted that _Perca fluviatilis_ was one of few species that had fairly stable observation numbers across years. It may be interesting to take a closer look at these.
 
 ```{r perca_fluviatilis}
 # Code for _Perca fluviatilis_ animation
@@ -197,19 +197,20 @@ a <- ggplot(occ %>% filter(species == "Perca fluviatilis")) +
   geom_point(aes(x = decimalLongitude, y = decimalLatitude), alpha = 0.6, size = 1, color = "dodgerblue3") + 
   theme(axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
-  guides(colour = guide_legend(override.aes = list(size=2))) +
   labs(title = paste0("Perca fluviatilis (perch)", ', year: {frame_time}')) + 
   transition_time(year)
 
 animate(a, duration = length(unique(occ$year))*0.5, end_pause = 4)
 ```
-```{r}
-walking_fluviatilis <- occ %>% filter(species == "Perca fluviatilis") %>% 
-%>% filter(year>1925 & year<1950)
+When looking at the animation, both of _Perca fluviatis_ and of the other species, there sometimes seems to be "walking" observations. We can focus on the period 1930 to 1945 for _P. fluviatilis_, where there is a distinct walk. When we filter the data set for _P. fluviatilis_ and the period 1925 to 1950, we see that there are in fact only two observations there, and none of them between 1930 and 1940. This is worrying. This, and the above suspicion based on how the faceted and non-faceted plots do not seem to display the same information, leads us to conclude that there must be something with the animation that we are not implementing correctly. We will look further into this at a later time.
 
+```{r, eval = TRUE}
+walking_fluviatilis <- occ %>% filter(species == "Perca fluviatilis") %>% filter(year>1925 & year<1950)
+select(walking_fluviatilis, year, waterBody, species)
 ```
 
-In the animations above we got a sense of the observations over time, but the constant movement of the animation makes it a bit difficult to absorb. Here we have divided all the observations from 1970 to 2010 into four sections: 1971 - 1980, 1981 - 1990, 1991 - 2000 and 2001 - 2010, and we plot all species for each time period.
+
+In the animations above we got a sense of the observations over time (assuming they are not completely wrong), but the constant movement of the animation makes it a bit difficult to absorb. Here we have divided all the observations from 1970 to 2010 into four sections: 1971 - 1980, 1981 - 1990, 1991 - 2000 and 2001 - 2010, and we plot all species for each time period.
 
 ```{r all_obs_four_periods}
 pick <- function(condition){
@@ -218,28 +219,28 @@ pick <- function(condition){
 
 norway1980 <- ggplot(data = occ, aes(x = decimalLongitude, y = decimalLatitude)) +
   geom_map(data = norway, map = norway, aes(long, lat, map_id=region), color="#2b2b2b", fill="white") +
-  geom_point(data = pick(year<=1980 & year>1970), size=0.001, color = "red3") +
+  geom_point(data = pick(year<=1980 & year>1970), size=0.001, color = "dodgerblue3") +
   ggtitle("Fish data between 1970 and 1980")
 
 norway1990 <- ggplot(data = occ, aes(x = decimalLongitude, y = decimalLatitude)) +
   geom_map(data = norway, map = norway, aes(long, lat, map_id=region), color="#2b2b2b", fill="white") +
-  geom_point(data = pick(year<=1990 & year>1980), size=0.001, color = "red3") +
+  geom_point(data = pick(year<=1990 & year>1980), size=0.001, color = "dodgerblue3") +
   ggtitle("Fish data between 1980 and 1990")
 
 norway2000 <- ggplot(data = occ, aes(x = decimalLongitude, y = decimalLatitude)) +
   geom_map(data = norway, map = norway, aes(long, lat, map_id=region), color="#2b2b2b", fill="white") +
-  geom_point(data = pick(year<=2000 & year>1990), size=0.001, color = "red3") +
+  geom_point(data = pick(year<=2000 & year>1990), size=0.001, color = "dodgerblue3") +
   ggtitle("Fish data between 1990 and 2000")
 
 norway2010 <- ggplot(data = occ, aes(x = decimalLongitude, y = decimalLatitude)) +
   geom_map(data = norway, map = norway, aes(long, lat, map_id=region), color="#2b2b2b", fill="white") +
-  geom_point(data = pick(year<=2010 & year>2000), size=0.001, color = "red3") +
+  geom_point(data = pick(year<=2010 & year>2000), size=0.001, color = "dodgerblue3") +
   ggtitle("Fish data between 2000 and 2010")
 
 plot_grid(norway1980, norway1990, norway2000, norway2010, labels = "AUTO")
 ```
 
-From these plots we see that a large portion of the observations were done between 1990 and 2000, which is expected after looking at \@ref(fig:years_barplot) with the large spike in 1993. There also seems to be a pattern with a large area in the middle of southern Norway having close to no observations in this time period. This area does however seem to have the majority of the observations in the next time period. This could indicate that some type of organized survey or observation effort was done in this time period, perhaps to fill this geographic hole in the data.
+From these plots we see that a large portion of the observations were done between 1990 and 2000, which is expected after looking at the bar plot of the years with the large spike in 1993. There also seems to be a pattern with a large area in the middle of southern Norway having close to no observations in this time period. This area does however seem to have the majority of the observations in the next time period. This could indicate that some type of organized survey or observation effort was done in this time period, perhaps to fill this geographic hole in the data.
 
 By counting the number of unique species per lake we can find the species richness per lake. 
 ```{r species_richness_prep}
@@ -257,11 +258,20 @@ ggplot(rich_lakes_w_loc) +
   scale_colour_viridis(option = "magma", direction = -1) +
   ggtitle("Species richness per lake")
 ```
+Based on the bar plot of locations, it is no surprise that Finnmark and Hedmark have species rich lakes. 
 
-
-(comment on this, maybe with reference to barplot of fylke)
-
+Here are the top ten species rich lakes:
 ```{r, eval = TRUE}
 rich_list <- unique(data.frame(waterBody = rich_lakes_w_loc$waterBody, species_richness = rich_lakes_w_loc$species_richness))
 arrange(rich_list, by_group = desc(species_richness))[1:10,]
+```
+
+### Reference for data:
+
+```{r, eval=TRUE}
+key <- readRDS("GBIF_download_key_Actinopterygii.rds")
+citation <- paste0("GBIF Occurrence Download https://doi.org/", 
+                     key[2], " accessed via GBIF.org on ", 
+                     Sys.Date())
+cat(citation)
 ```
