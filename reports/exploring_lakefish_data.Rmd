@@ -227,7 +227,7 @@ norway2010 <- ggplot(data = occ, aes(x = decimalLongitude, y = decimalLatitude))
 plot_grid(norway1980, norway1990, norway2000, norway2010, labels = "AUTO")
 ```
 
-(comments on plot)
+From these plots we see that a large portion of the observations were done between 1990 and 2000, which is expected after seeing the earlier histogram with the large spike in 1993. There also seems to be a pattern with a large area in the middle of southern Norway having close to no observations in this time period. This area does however seem to have the majority of the observations in the next time period. This could indicate that some type of organized survey or observation effort was done in this time period, perhaps to fill this geographic hole in the data.
 
 By counting the number of unique species per lake we can find the species richness per lake. 
 ```{r species_richness}
@@ -248,9 +248,3 @@ ggplot(rich_lakes_w_loc) +
 ```{r, eval = TRUE}
 head(arrange(rich_lakes, by_group = unique_spec))
 ```
-
-
-Next plots:
-
-* Would it be interesting to zoom in somewhere? 
-
