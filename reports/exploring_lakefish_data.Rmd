@@ -204,7 +204,9 @@ a <- ggplot(occ %>% filter(species == "Perca fluviatilis")) +
 animate(a, duration = length(unique(occ$year))*0.5, end_pause = 4)
 ```
 ```{r}
-walking_fluviatilis <- occ %>% filter(species == "Perca fluviatilis") %>% filter(year)
+walking_fluviatilis <- occ %>% filter(species == "Perca fluviatilis") %>% 
+%>% filter(year>1925 & year<1950)
+
 ```
 
 In the animations above we got a sense of the observations over time, but the constant movement of the animation makes it a bit difficult to absorb. Here we have divided all the observations from 1970 to 2010 into four sections: 1971 - 1980, 1981 - 1990, 1991 - 2000 and 2001 - 2010, and we plot all species for each time period.
