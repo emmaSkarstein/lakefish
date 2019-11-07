@@ -24,7 +24,7 @@ library(cowplot)
 
 ## About the data
 
-We will be looking at observations of freshwater fish in Norwegian lakes. Our observations are obtained from GBIF (more formal referencing of data somehow?), by first downloading all ray-finned fish (Actinopterygii) observations registered in Norway, and then filtering these based on the following steps:
+We will be looking at observations of freshwater fish in Norwegian lakes. Our observations are obtained from GBIF, by first downloading all ray-finned fish (Actinopterygii) observations registered in Norway, and then filtering these based on the following steps:
 
 1. Filter out species not in list of Norwegian freshwater fish, [as described by SNL](https://snl.no/ferskvannsfisk_i_Norge) 
 2. Match all species to closest lake, and remove observation further than 10 meters from the closest lake
@@ -46,6 +46,8 @@ cat(fish_names, sep = ", ")
 occ <- readRDS("filtered_occurences.rds")
 #lakes <- readRDS("lake_polygons.rds")
 ```
+
+The resulting data set consists of `r nrow(occ)` fish observations in `r occ %>% select(waterBodyID) %>% unique() %>% nrow()` lakes. Next, we will take a look at these fish distributed across species and time.
 
 ## Preliminary insights
 
