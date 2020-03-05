@@ -16,7 +16,11 @@ library(spatstat)
 library(maptools)
 print("Packages loaded.")
 
-Data_survey <- readRDS(here::here("data", "NordicSurveyData_filtered.rds"))
+Data_survey <- readRDS(here::here("data", "NordicSurvey", "NordicSurveyData_filtered.rds"))
+
+Data_gillnet <- readRDS(here::here("data","TranscribedGillnet","TranscribedGillnet_filtered.rds"))
+Data_gillnet <- Data_gillnet[complete.cases(Data_gillnet$individualCount),]
+Data_gillnet$Ntrials <- rep(1,nrow(Data_gillnet))
 
 covariateData <- readRDS(here::here("data","Covariates.rds"))
 covariateData <- covariateData[complete.cases(covariateData$decimalLatitude,covariateData$decimalLongitude,covariateData$area_km2,covariateData$HFP),]
@@ -30,8 +34,8 @@ Projection <- CRS("+proj=longlat +ellps=WGS84")
 norwayfill <- map("world", "norway", fill=TRUE, plot=TRUE, ylim=c(58,72),xlim=c(4,32))
 IDs <- sapply(strsplit(norwayfill$names, ":"), function(x) x[1])
 norway.poly <- map2SpatialPolygons(norwayfill, IDs = IDs, proj4string = Projection)
-sapply(slot(norway.poly, "polygons"),
-       function(x) length(slot(x, "Polygons")))
+# sapply(slot(norway.poly, "polygons"),
+#        function(x) length(slot(x, "Polygons")))
 
 ##### COVARIATES #####
 Use <- c("HFP","eurolst_bio10","log_area_km2") #"area_km2","decimalLongitude","decimalLatitude",
@@ -43,6 +47,10 @@ print("Covariates loaded.")
 ##### DATA #####
 Data_survey <- SpatialPointsDataFrame(Data_survey[,c("decimalLongitude","decimalLatitude")], 
                                        data = Data_survey[,c("occurrenceStatus","species")],
+                                       proj4string = Projection)
+
+Data_gillnet <- SpatialPointsDataFrame(Data_gillnet[,c("decimalLongitude","decimalLatitude")], 
+                                       data = Data_gillnet[,c("individualCount","species","samplingEffort","Ntrials")],
                                        proj4string = Projection)
 print("Data loaded.")
 # Data_survey.colors <- c(gsub(TRUE,"red",Data_survey$occurrenceStatus))
@@ -74,10 +82,13 @@ print("Prediction stack created.")
 stk.survey <- MakeBinomStack(observs=Data_survey, data=Covariates, mesh=Mesh$mesh, 
                              presname="occurrenceStatus",  
                              tag="survey", InclCoords=TRUE) #polynoms = norway.poly,
-print("Data stack created.")
+stk.gillnet <- MakeBinomStack(observs=Data_gillnet, data=Covariates, mesh=Mesh$mesh, 
+                              presname="individualCount", trialname = "Ntrials",
+                              tag="gillnet", InclCoords=TRUE) #polynoms = norway.poly,
+print("Data stacks created.")
 
 #Formula <- formula(paste(c("resp ~ 0 + log(area_km2)",Use), collapse="+"))
-NorwegianModel <- FitModel(stk.survey, stk.ip,
+NorwegianModel <- FitModel(stk.survey, stk.gillnet, stk.ip,
                               stk.pred$stk, CovNames = Use, mesh = Mesh$mesh,
                         predictions = TRUE)#, spat.ind = NULL, CovNames=Use)
 NorwegianModel.summary <- summary(NorwegianModel$model)$fixed
@@ -88,4 +99,4 @@ Pred <- SpatialPixelsDataFrame(points=stk.pred$predcoords, data=NorwegianModel$p
 Pred@data$precision <- Pred@data$stddev^-2
 save.image(file = "NorwegianModelWorkspace.RData")
 print("Image saved.")
-load(here::here("NorwegianModelWorkspace.RData"))
+#load(here::here("NorwegianModelWorkspace.RData"))
