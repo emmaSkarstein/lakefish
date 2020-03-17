@@ -1,7 +1,6 @@
 #-------------------------------------------------------------------------------
 # Load packages
 #-------------------------------------------------------------------------------
-
 library(rgbif)        # for interacting with gbif
 library(dplyr)        # for data-wrangling
 library(rstudioapi)   # for writing in user info

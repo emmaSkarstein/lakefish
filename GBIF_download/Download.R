@@ -39,7 +39,7 @@ options(gbif_pwd=rstudioapi::askForPassword("my gbif password"))
 # Cyprinus carpio - Karpe
 
 # Find a taxonkey - get list of gbif keys to filter download
-key <- name_suggest(q='Salmo salar', rank='species')$key[1] 
+key <- name_suggest(q='Salmo trutta', rank='species')$key[1] 
 
 
 

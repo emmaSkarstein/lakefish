@@ -25,12 +25,12 @@ match_to_lake <- function(data, lake_polygons, max_dist_from_lake = 10){
     st_transform(st_crs(lake_polygons)$epsg) %>%
     
     # Select a few of the variables
-    dplyr::select(gbifID, occurrenceID, catalogNumber, geometry, species, 
-                  taxonKey, datasetKey, locality, municipality, county, 
-                  countryCode, locationID, eventDate, year, month, day, 
-                  samplingProtocol, eventID, fieldNumber, recordedBy, 
-                  dynamicProperties, collectionCode, datasetName, license, 
-                  institutionCode)
+    # dplyr::select(gbifID, occurrenceID, catalogNumber, geometry, species, 
+    #               taxonKey, datasetKey, locality, municipality, county, 
+    #               countryCode, locationID, eventDate, year, month, day, 
+    #               samplingProtocol, eventID, fieldNumber, recordedBy, 
+    #               dynamicProperties, collectionCode, datasetName, license, 
+    #               institutionCode)
   
   #-------------------------------------------------------------------------------------------------
   # Find closest lake

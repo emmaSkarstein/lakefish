@@ -13,6 +13,11 @@ lakes <- readRDS(here::here("data","lake_polygons.rds"))
 species_table <- occ_matched %>% group_by(species) %>% summarize(count=n()) %>% filter(count > 1000) %>% arrange(desc(count)) %>% top_n(n = 12, wt = count)
 occ_matched <- occ_matched %>% filter(occ_matched$species %in% species_table$species)
 
+new_lakes <- occ_matched %>% group_by(waterBodyID) %>% select(waterBodyID) %>% distinct() %>% arrange(waterBodyID)
+st_write(new_lakes,"newlakes.csv")
+new_lakess <- read.csv(file=here::here("R","newlakes.csv"), header=TRUE, sep=",")
+write.table(new_lakess[,1], file = "newlakes.csv",row.names=FALSE, na="", sep=",")
+
 occ_nona <- occ_matched[complete.cases(occ_matched$year,occ_matched$month,occ_matched$day),]
 
 norway <- ggplot2::map_data("world", region = "Norway(?!:Svalbard)")
@@ -74,3 +79,4 @@ for (i in species_table$species){
     theme(legend.position = c(1,0), legend.justification = c(1,0)) +
     labs(color = "Species")
   ggsave(filename = paste0("plot", i, ".png"), plot = species_plot, path = here::here("data"),width=10,height = 10)
+}

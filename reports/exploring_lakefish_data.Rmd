@@ -140,7 +140,10 @@ ggplot(occ) +
   geom_map(data = norway, map = norway, aes(long, lat, map_id=region), 
            color="#2b2b2b", fill = "white") + 
   geom_point(aes(x = decimalLongitude, y = decimalLatitude, color = species), alpha = 0.6, size = 0.3) + 
-  scale_color_brewer(palette="Paired") +
+  #scale_color_brewer(palette="Paired") +
+  scale_color_manual(values=c("#fdbf6f", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99",
+                              "#e31a1c", "#5a7e91", "#756467", "#ff7f00", "#6a3d9a",
+                              "#c9a500", "#b15928")) +
   theme(axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
   guides(colour = guide_legend(override.aes = list(size=2))) + 
